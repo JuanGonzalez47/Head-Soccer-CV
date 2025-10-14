@@ -234,7 +234,7 @@ class GraphWin(tk.Canvas):
     def _onKeyPress(self, evnt):
     	if not evnt.keysym in self.keys:
         	self.keys.append(evnt.keysym)
-
+            
     def _onKeyRelease(self, evnt):
         self.keys.remove(evnt.keysym)
 #################################################################################################################################       

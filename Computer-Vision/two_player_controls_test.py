@@ -16,20 +16,26 @@ def test_two_player_controls():
     - Knee raised for kicking
     """
     cap = cv2.VideoCapture(0)
-    # Initialize MediaPipe with higher detection confidence for stability
+    
+    # Set camera properties for faster frame rate
+    cap.set(cv2.CAP_PROP_FPS, 30)  # Reduced to 30 FPS for stability
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 480)  # Even lower resolution for faster processing
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize frame buffer for lower latency
+    # Initialize MediaPipe with optimized settings
     hands = init_mediapipe_hands()
-    # Configure separate pose detection for each player
+    # Configure separate pose detection for each player with reduced complexity
     pose_p1 = mp.solutions.pose.Pose(
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5,
-        model_complexity=1,
-        smooth_landmarks=True,
+        min_detection_confidence=0.3,  # Lower confidence threshold
+        min_tracking_confidence=0.3,   # Lower tracking threshold
+        model_complexity=0,            # Use simplest model for speed
+        smooth_landmarks=False,        # Disable smoothing for faster updates
     )
     pose_p2 = mp.solutions.pose.Pose(
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5,
-        model_complexity=1,
-        smooth_landmarks=True,
+        min_detection_confidence=0.3,  # Lower confidence threshold
+        min_tracking_confidence=0.3,   # Lower tracking threshold
+        model_complexity=0,            # Use simplest model for speed
+        smooth_landmarks=False,        # Disable smoothing for faster updates
     )
     mp_drawing = mp.solutions.drawing_utils
     mp_hands = mp.solutions.hands
@@ -49,7 +55,7 @@ def test_two_player_controls():
     COOLDOWN_FRAMES = 15
     
     # Thresholds
-    KNEE_HEIGHT_THRESHOLD = 0.1  # How high knee should be relative to hip
+    KNEE_HEIGHT_THRESHOLD = 0.007  # How high knee should be relative to hip (reduced for easier kicks)
     
     try:
         while cap.isOpened():
@@ -112,11 +118,15 @@ def test_two_player_controls():
                 # Get the correct x adjustments
                 x_adjustments = p1_x_adjustments if player == 1 else p2_x_adjustments
                 
-                # Draw landmarks at adjusted positions using cv2
-                for connection in mp_pose.POSE_CONNECTIONS:
-                    start_idx = connection[0]
-                    end_idx = connection[1]
-                    
+                # Only draw essential landmarks for performance
+                essential_connections = [
+                    (mp_pose.PoseLandmark.RIGHT_HIP.value, mp_pose.PoseLandmark.RIGHT_KNEE.value),
+                    (mp_pose.PoseLandmark.LEFT_HIP.value, mp_pose.PoseLandmark.LEFT_KNEE.value),
+                    (mp_pose.PoseLandmark.RIGHT_SHOULDER.value, mp_pose.PoseLandmark.RIGHT_HIP.value),
+                    (mp_pose.PoseLandmark.LEFT_SHOULDER.value, mp_pose.PoseLandmark.LEFT_HIP.value)
+                ]
+                
+                for start_idx, end_idx in essential_connections:
                     # Get landmarks with adjusted x coordinates
                     start_landmark = landmarks.landmark[start_idx]
                     end_landmark = landmarks.landmark[end_idx]
@@ -134,8 +144,15 @@ def test_two_player_controls():
                     # Draw the connection
                     cv2.line(frame, start_pos, end_pos, players[player]["color"], 2)
                     
-                # Draw landmark points
-                for idx, landmark in enumerate(landmarks.landmark):
+                # Draw only essential landmark points
+                essential_points = [
+                    mp_pose.PoseLandmark.RIGHT_HIP.value,
+                    mp_pose.PoseLandmark.RIGHT_KNEE.value,
+                    mp_pose.PoseLandmark.LEFT_HIP.value,
+                    mp_pose.PoseLandmark.LEFT_KNEE.value
+                ]
+                for idx in essential_points:
+                    landmark = landmarks.landmark[idx]
                     pos = normalize_coordinates(
                         type('Point', (), {'x': x_adjustments[idx], 'y': landmark.y}),
                         frame.shape

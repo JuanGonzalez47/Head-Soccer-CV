@@ -12,6 +12,14 @@ parent_dir = os.path.dirname(current_dir)
 computer_vision_dir = os.path.join(parent_dir, 'Computer-Vision')
 sys.path.append(computer_vision_dir)
 
+# Setup asset paths
+ASSETS_DIR = os.path.join(parent_dir, 'assets')
+IMAGES_DIR = os.path.join(ASSETS_DIR, 'Imagens')
+
+def get_asset_path(filename):
+    """Get absolute path for an asset file"""
+    return os.path.join(IMAGES_DIR, filename)
+
 from utils import normalize_coordinates, init_mediapipe_pose, init_mediapipe_hands
 
 import threading
@@ -31,21 +39,21 @@ class VisionController:
         # Configurar MediaPipe Hands para mejor rendimiento
         self.hands = mp.solutions.hands.Hands(
             max_num_hands=2,  # Limitar a 2 manos para mejor rendimiento
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
+            min_detection_confidence=0.3,
+            min_tracking_confidence=0.3,
             model_complexity=0  # Usar modelo más ligero
         )
         
         # Configurar pose detection más rápido
         self.pose_p1 = mp.solutions.pose.Pose(
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
+            min_detection_confidence=0.3,
+            min_tracking_confidence=0.3,
             model_complexity=0,  # Modelo más ligero
             smooth_landmarks=False,  # Desactivar suavizado para menor latencia
         )
         self.pose_p2 = mp.solutions.pose.Pose(
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
+            min_detection_confidence=0.3,
+            min_tracking_confidence=0.3,
             model_complexity=0,
             smooth_landmarks=False,
         )
@@ -74,7 +82,7 @@ class VisionController:
             2: {"jump": 0, "kick": 0}
         }
         self.COOLDOWN_FRAMES = 8  # Reducido para más rapidez
-        self.KNEE_HEIGHT_THRESHOLD = 0.08  # Más sensible para patadas
+        self.KNEE_HEIGHT_THRESHOLD = 0.007
 
     def _process_frames(self):
         """Background thread for processing frames"""
@@ -246,13 +254,20 @@ class VisionController:
                     self.players[player]["movement"] = "left"
                     
             elif hand_label == "Left":  # Jump control
-                # Detección de salto más sensible
+                # Mantener el estado de salto mientras la mano esté arriba
                 if wrist.y < 0.5:  # Hand raised above 50% of screen height
+                    # Solo iniciar un nuevo salto si no hay cooldown
                     if self.cooldowns[player]["jump"] == 0:
                         self.players[player]["jump"] = "jumping"
-                        self.cooldowns[player]["jump"] = 10  # Cooldown más corto
+                        self.cooldowns[player]["jump"] = 5  # Cooldown aún más corto para mejor respuesta
+                    # Mantener el estado de salto si ya está saltando
+                    elif self.players[player]["jump"] == "jumping":
+                        self.players[player]["jump"] = "jumping"
                 else:
+                    # Reset the jump state when hand is lowered
                     self.players[player]["jump"] = "ready"
+                    # Reset cooldown when hand is lowered to permitir nuevo salto inmediato
+                    self.cooldowns[player]["jump"] = 0
 
     def _update_cooldowns(self):
         """Update cooldown timers"""
@@ -354,13 +369,13 @@ except Exception as e:
     print("Falling back to keyboard controls")
     use_vision = False
 
-intro = Image(Point(x / 2, y / 2), "../assets/Imagens/intro2.gif")
+intro = Image(Point(x / 2, y / 2), get_asset_path("intro2.gif"))
 intro.draw(tela)
 
-jogar = Image(Point(175, 500), "../assets/Imagens/jogar.gif")
+jogar = Image(Point(175, 500), get_asset_path("jogar.gif"))
 jogar.draw(tela)
 
-sair = Image(Point(425, 500), "../assets/Imagens/sair.gif")
+sair = Image(Point(425, 500), get_asset_path("sair.gif"))
 sair.draw(tela)
 
 ####################
@@ -405,27 +420,27 @@ col_trave1.draw(tela)
 col_trave2 = Circle(Point(x - 105, 360), 5)
 col_trave2.draw(tela)
 
-bg = Image(Point(x / 2, y / 2), "../assets/Imagens/bg.gif")
+bg = Image(Point(x / 2, y / 2), get_asset_path("bg.gif"))
 bg.draw(tela)
 
 #### BONECO ESQUERDO ####
-boneco = Image(Point(300, 503), "../assets/Imagens/LeftChar.gif")
+boneco = Image(Point(300, 503), get_asset_path("LeftChar.gif"))
 boneco.draw(tela)
 
 #### BONECO DIREITO ####
-boneco2 = Image(Point(900, 503), "../assets/Imagens/RightChar.gif")
+boneco2 = Image(Point(900, 503), get_asset_path("RightChar.gif"))
 boneco2.draw(tela)
 
 #### BOLA ####
-bola = Image(Point(x / 2, 100), "../assets/Imagens/ball.gif")
+bola = Image(Point(x / 2, 100), get_asset_path("ball.gif"))
 bola.draw(tela)
 
 ### TRAVE ESQUERDA ###
-trave1 = Image(Point(55, 450), "../assets/Imagens/trave1.gif")
+trave1 = Image(Point(55, 450), get_asset_path("trave1.gif"))
 trave1.draw(tela)
 
 ### TRAVE DIREITA ###
-trave2 = Image(Point(x - 55, 450), "../assets/Imagens/trave2.gif")
+trave2 = Image(Point(x - 55, 450), get_asset_path("trave2.gif"))
 trave2.draw(tela)
 
 x1_trave2 = trave2.getAnchor().getX() - larg_t
@@ -708,7 +723,7 @@ while True:
                 boneco.undraw()
                 boneco = Image(
                     Point(boneco.getAnchor().getX(), boneco.getAnchor().getY()),
-                    "../assets/Imagens/LeftChar_kick1.gif",
+                    get_asset_path("LeftChar_kick1.gif"),
                 )
                 boneco.draw(tela)
             if cont_chute // 8 == 1:
@@ -716,7 +731,7 @@ while True:
                 boneco.undraw()
                 boneco = Image(
                     Point(boneco.getAnchor().getX(), boneco.getAnchor().getY()),
-                    "../assets/Imagens/LeftChar_kick2.gif",
+                    get_asset_path("LeftChar_kick2.gif"),
                 )
                 boneco.draw(tela)
             cont_chute += 1
@@ -724,7 +739,7 @@ while True:
                 boneco.undraw()
                 boneco = Image(
                     Point(boneco.getAnchor().getX(), boneco.getAnchor().getY()),
-                    "../assets/Imagens/LeftChar.gif",
+                    get_asset_path("LeftChar.gif"),
                 )
                 boneco.draw(tela)
                 cont_chute = 0
@@ -740,7 +755,7 @@ while True:
                 boneco2.undraw()
                 boneco2 = Image(
                     Point(boneco2.getAnchor().getX(), boneco2.getAnchor().getY()),
-                    "../assets/Imagens/RightChar_kick1.gif",
+                    get_asset_path("RightChar_kick1.gif"),
                 )
                 boneco2.draw(tela)
             if cont_chute2 // 8 == 1:
@@ -748,7 +763,7 @@ while True:
                 boneco2.undraw()
                 boneco2 = Image(
                     Point(boneco2.getAnchor().getX(), boneco2.getAnchor().getY()),
-                    "../assets/Imagens/RightChar_kick2.gif",
+                    get_asset_path("RightChar_kick2.gif"),
                 )
                 boneco2.draw(tela)
             cont_chute2 += 1
@@ -756,7 +771,7 @@ while True:
                 boneco2.undraw()
                 boneco2 = Image(
                     Point(boneco2.getAnchor().getX(), boneco2.getAnchor().getY()),
-                    "../assets/Imagens/RightChar.gif",
+                    get_asset_path("RightChar.gif"),
                 )
                 boneco2.draw(tela)
                 cont_chute2 = 0

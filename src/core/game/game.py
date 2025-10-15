@@ -2,31 +2,33 @@ import os
 import sys
 import time
 import math
-from ...graphics.graphics import GraphWin, Point, Text, Image
-from ..config import (
+from src.graphics.graphics import GraphWin, Point, Text, Image
+from src.core.config import (
     x, y, raio, raio_cabeca, chao, vel, atrito,
     larg_t, alt_t, contador_gol1, contador_gol2
 )
-from .ball import Ball
-from .field import Field
-from .player import Player
-from ...controllers.vision import VisionController
-from ...controllers.keyboard import KeyboardController
+from src.core.game.ball import Ball
+from src.core.game.field import Field
+from src.core.game.player import Player
+from src.controllers.vision import VisionController
+from src.controllers.keyboard import KeyboardController
+from src.controllers.control_selection import ControlSelector
 
 class Game:
     def __init__(self):
         """Initialize the game window and all components"""
         # Create main window
         self.window = GraphWin("Head Soccer", x, y, False)
+        self.window.setBackground("black")
         
         # Initialize game state
         self.score = {"left": 0, "right": 0}
         self.is_goal = False
         
-        # Initialize controllers
+        # Initialize controllers first
         self.setup_controllers()
         
-        # Show intro screen
+        # Then show intro screen
         self.show_intro()
         
         # Initialize game objects
@@ -35,18 +37,39 @@ class Game:
         # Initialize score display
         self.setup_score_display()
         
+        # Enable key buffer for better keyboard response
+        self.window.ligar_Buffer()
+        
     def setup_controllers(self):
-        """Initialize game controllers (vision or keyboard)"""
+        """Initialize game controllers based on user selection"""
+        print("Setting up controllers...")
+        
+        # Show control selection screen
+        selector = ControlSelector(self.window)
+        control_type = selector.show_selection_screen(x, y)
+        print(f"Control type selected: {control_type}")
+        
+        # Initialize the selected controller
         try:
-            self.vision_controller = VisionController()
-            self.controller = self.vision_controller
-            self.use_vision = True
-            print("Vision controller initialized successfully!")
+            if control_type == "vision":
+                print("Initializing vision controller...")
+                self.vision_controller = VisionController()
+                self.controller = self.vision_controller
+                self.use_vision = True
+                print("Vision controller initialized successfully!")
+            else:  # keyboard or any other case
+                print("Initializing keyboard controller...")
+                self.controller = KeyboardController(self.window)
+                self.use_vision = False
+                print("Keyboard controller initialized successfully!")
         except Exception as e:
-            print(f"Could not initialize vision controller: {e}")
+            print(f"Error initializing controller: {e}")
             print("Falling back to keyboard controls")
             self.controller = KeyboardController(self.window)
             self.use_vision = False
+        
+        # Pause briefly to show the selection result
+        time.sleep(0.5)
             
     def show_intro(self):
         """Show and handle the intro screen"""
@@ -119,29 +142,42 @@ class Game:
         
     def handle_controls(self):
         """Process input from the active controller"""
-        player_states = self.controller.process_input()
-        
-        # Handle Player 1
-        if player_states[1]["movement"] == "left":
-            self.player1.move(-vel, 0)
-        elif player_states[1]["movement"] == "right":
-            self.player1.move(vel, 0)
+        try:
+            # Get player states from controller
+            player_states = self.controller.process_input()
             
-        if player_states[1]["jump"] == "jumping":
-            self.player1.start_jump()
-        if player_states[1]["kick"] == "kicking":
-            self.player1.start_kick()
-            
-        # Handle Player 2
-        if player_states[2]["movement"] == "left":
-            self.player2.move(-vel, 0)
-        elif player_states[2]["movement"] == "right":
-            self.player2.move(vel, 0)
-            
-        if player_states[2]["jump"] == "jumping":
-            self.player2.start_jump()
-        if player_states[2]["kick"] == "kicking":
-            self.player2.start_kick()
+            # Handle Player 1
+            if player_states[1]["movement"] == "left":
+                print("Player 1 moving left")
+                self.player1.move(-vel, 0)
+            elif player_states[1]["movement"] == "right":
+                print("Player 1 moving right")
+                self.player1.move(vel, 0)
+                
+            if player_states[1]["jump"] == "jumping":
+                print("Player 1 jumping")
+                self.player1.start_jump()
+            if player_states[1]["kick"] == "kicking":
+                print("Player 1 kicking")
+                self.player1.start_kick()
+                
+            # Handle Player 2
+            if player_states[2]["movement"] == "left":
+                print("Player 2 moving left")
+                self.player2.move(-vel, 0)
+            elif player_states[2]["movement"] == "right":
+                print("Player 2 moving right")
+                self.player2.move(vel, 0)
+                
+            if player_states[2]["jump"] == "jumping":
+                print("Player 2 jumping")
+                self.player2.start_jump()
+            if player_states[2]["kick"] == "kicking":
+                print("Player 2 kicking")
+                self.player2.start_kick()
+                
+        except Exception as e:
+            print(f"Error handling controls: {e}")
             
     def update_physics(self):
         """Update physics and collisions"""
@@ -332,10 +368,12 @@ class Game:
         
     def run(self):
         """Main game loop"""
-        self.window.ligar_Buffer()
+        # Make sure key buffer is enabled
+        if hasattr(self.window, 'ligar_Buffer'):
+            self.window.ligar_Buffer()
         
         while True:
-            # Process player input
+            # Process player input first
             self.handle_controls()
             
             # Update game state
@@ -350,6 +388,10 @@ class Game:
             
             # Add small delay for stable frame rate
             time.sleep(0.016)  # Aproximadamente 60 FPS
+            
+            # Check for window closed
+            if self.window.isClosed():
+                break
             
     def cleanup(self):
         """Clean up resources before exit"""

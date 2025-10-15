@@ -1,7 +1,9 @@
+"""Integration tests for the vision control system."""
+
 import cv2
 import numpy as np
 import mediapipe as mp
-from utils import normalize_coordinates, init_mediapipe_pose, init_mediapipe_hands
+from src.utils.utils import normalize_coordinates, init_mediapipe_pose, init_mediapipe_hands
 
 def test_all_controls():
     """
@@ -28,7 +30,7 @@ def test_all_controls():
     COOLDOWN_FRAMES = 15
     
     # Thresholds
-    KNEE_HEIGHT_THRESHOLD = 0.1  # How high knee should be relative to hip
+    KNEE_HEIGHT_THRESHOLD = 0.007  # How high knee should be relative to hip
     
     try:
         while cap.isOpened():

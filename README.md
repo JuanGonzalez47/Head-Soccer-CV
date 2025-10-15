@@ -39,9 +39,9 @@ A Python-based 2D soccer game where players can control their characters using c
 git clone https://github.com/JuanGonzalez47/Head-Soccer-CV.git
 ```
 2. Activate your virtual environment:
-   ```powershell
-   .\venv310\Scripts\Activate.ps1
-   ```
+```bash
+.\venv310\Scripts\Activate.ps1
+```
 3. Install required packages:
 ```bash
 pip install -r requirements.txt

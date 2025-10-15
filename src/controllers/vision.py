@@ -15,7 +15,7 @@ class VisionController(Controller):
         # Optimize camera configuration for better performance
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)  # Reduced resolution
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.cap.set(cv2.CAP_PROP_FPS, 60)  # Reduced FPS
+        self.cap.set(cv2.CAP_PROP_FPS, 30)  # Reduced FPS
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         
         # Configure MediaPipe Hands with optimized settings for two players

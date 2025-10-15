@@ -23,12 +23,14 @@ A Python-based 2D soccer game where players can control their characters using c
 - 📐 Realistic physics for ball movement
 - 🎮 Responsive controls
 
-## 🛠️ Requirements
+## ⚙️ Tech Stack
 
-- Python 3.x
-- OpenCV (for computer vision control)
-- Graphics.py library
-- Numpy
+- **Python 3.9+**
+- **graphics.py** – for rendering the original 2D game
+- **OpenCV** – webcam capture and image processing
+- **Mediapipe** – body, hand, and pose detection
+- **NumPy** – optional for data smoothing or calculations
+- **playsound** / **Pillow** – from original ga
 
 ## 📦 Installation
 
@@ -63,9 +65,9 @@ python -m src.core.game
   - Kick: S key
 
 #### Computer Vision Controls:
-- Move your head left/right to control player movement
-- Move your head up to jump/header
-- Detected head movements will control your player automatically
+- Up or Close your hand left/right to control player movement (Right Hand)
+- Move your left hand up to jump
+- To kick the ball up your knee
 
 ## 🔧 Recent Updates
 
@@ -90,36 +92,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙋‍♂️ Authors
 
 - [JuanGonzalez47](https://github.com/JuanGonzalez47)), redesigned to explore **human-motion control** using **computer vision**.
-
-The goal is to replace traditional keyboard inputs with **body movement detection** — using your hands, head, and feet captured by your webcam.
-
----
-
-## 🎯 Project Goals
-
-- Replace keyboard inputs (`A`, `D`, `W`, `Space`) with camera-based gesture recognition.
-- Experiment with different **segmentation and tracking techniques** (Mediapipe, background subtraction, color tracking, etc.).
-- Build a working **MVP** (Minimum Viable Product) demonstrating real-time gameplay controlled by your movements.
-- Serve as a sandbox for testing **vision-to-control pipelines** in Python.
-
----
-
-## 🕹️ Controls (Planned Mapping)
-
-| Game Action | Real-World Movement | Vision Technique |
-|--------------|--------------------|------------------|
-| Move Left | Left hand open palm | Hand detection |
-| Move Right | Right hand open palm | Hand detection |
-| Jump | Head up motion | Pose tracking |
-| Shoot | Foot kick gesture | Pose tracking / motion detection |
-
----
-
-## ⚙️ Tech Stack
-
-- **Python 3.9+**
-- **graphics.py** – for rendering the original 2D game
-- **OpenCV** – webcam capture and image processing
-- **Mediapipe** – body, hand, and pose detection
-- **NumPy** – optional for data smoothing or calculations
-- **playsound** / **Pillow** – from original game

@@ -102,44 +102,51 @@ class ControlSelector:
         title.draw(self.window)
         
         # Create buttons with dark green background and larger size
-        vision_button, vision_text = self.create_button(450, 300, 250, 80, "Vision Control", "darkgreen")
-        keyboard_button, keyboard_text = self.create_button(750, 300, 250, 80, "Keyboard Control", "darkgreen")
+        vision_btn_cx, vision_btn_cy, vision_btn_w, vision_btn_h = 450, 300, 250, 80
+        keyboard_btn_cx, keyboard_btn_cy, keyboard_btn_w, keyboard_btn_h = 750, 300, 250, 80
+        vision_button, vision_text = self.create_button(vision_btn_cx, vision_btn_cy, vision_btn_w, vision_btn_h, "Vision Control", "darkgreen")
+        keyboard_button, keyboard_text = self.create_button(keyboard_btn_cx, keyboard_btn_cy, keyboard_btn_w, keyboard_btn_h, "Keyboard Control", "darkgreen")
 
         # Draw buttons
         vision_button.draw(self.window)
         vision_text.draw(self.window)
         keyboard_button.draw(self.window)
         keyboard_text.draw(self.window)
-        
+
         # Wait for player selection
         while True:
             click = self.window.checkMouse()
             key = self.window.checkKey()
-            
             if click:
                 click_x = click.getX()
                 click_y = click.getY()
-                
-                # Vision control button area (adjusted for larger buttons)
-                if (260 <= click_y <= 340) and (175 <= click_x <= 425):
+                # Vision button area
+                if (
+                    vision_btn_cx - vision_btn_w/2 <= click_x <= vision_btn_cx + vision_btn_w/2 and
+                    vision_btn_cy - vision_btn_h/2 <= click_y <= vision_btn_cy + vision_btn_h/2
+                ):
+                    print("[INFO] Vision button clicked")
                     selection = "vision"
                     break
-                    
-                # Keyboard control button area (adjusted for larger buttons)
-                elif (260 <= click_y <= 340) and (575 <= click_x <= 825):
+                # Keyboard button area
+                elif (
+                    keyboard_btn_cx - keyboard_btn_w/2 <= click_x <= keyboard_btn_cx + keyboard_btn_w/2 and
+                    keyboard_btn_cy - keyboard_btn_h/2 <= click_y <= keyboard_btn_cy + keyboard_btn_h/2
+                ):
+                    print("[INFO] Keyboard button clicked")
                     selection = "keyboard"
                     break
-            
-            # Allow keyboard selection too
             elif key:
                 if key.lower() == "v":
+                    print("[INFO] Vision key selected")
                     selection = "vision"
                     break
                 elif key.lower() == "k":
+                    print("[INFO] Keyboard key selected")
                     selection = "keyboard"
                     break
-            
-            time.sleep(0.016)  # Add a small delay to prevent high CPU usage
+            time.sleep(0.016)
+        print(f"[INFO] Returning selection: {selection}")
         
         # Add a small delay before cleaning up
         time.sleep(0.2)
